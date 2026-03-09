@@ -32,3 +32,19 @@ export function schoolRouteId(school) {
     ""
   );
 }
+
+export function generateSchoolCodeFromName(name) {
+  const cleanedName = String(name || "").trim();
+
+  if (!cleanedName) {
+    return "";
+  }
+
+  // Use initials from each word, then uppercase (e.g. "Green Valley School" => "GVS").
+  return cleanedName
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
+}

@@ -115,9 +115,24 @@ app.get("/superadmin/schools", async (request, response) => {
   if (!TARGET_API_BASE_URL) {
     return response.json({
       schools: [
-        { id: 1, name: "Green Valley Public School" },
-        { id: 2, name: "Sunrise International Academy" },
-        { id: 3, name: "Riverdale Senior Secondary School" },
+        {
+          id: 1,
+          schoolName: "Green Valley Public School",
+          schoolCode: "GVPS",
+          status: "ACTIVE",
+        },
+        {
+          id: 2,
+          schoolName: "Sunrise International Academy",
+          schoolCode: "SIA",
+          status: "ACTIVE",
+        },
+        {
+          id: 3,
+          schoolName: "Riverdale Senior Secondary School",
+          schoolCode: "RSSS",
+          status: "ACTIVE",
+        },
       ],
     });
   }
@@ -134,6 +149,49 @@ app.get("/superadmin/schools", async (request, response) => {
     return response
       .status(502)
       .json({ message: "Unable to reach upstream schools service." });
+  }
+});
+
+app.post("/superadmin/schools", async (request, response) => {
+  const authHeader = request.headers.authorization || "";
+
+  if (!authHeader) {
+    return response
+      .status(401)
+      .json({ message: "Authorization header is required." });
+  }
+
+  const requestBody = request.body || {};
+
+  if (!requestBody.schoolName || !requestBody.schoolCode) {
+    return response
+      .status(400)
+      .json({ message: "schoolName and schoolCode are required." });
+  }
+
+  if (!TARGET_API_BASE_URL) {
+    return response.status(201).json({
+      school: {
+        id: Date.now(),
+        ...requestBody,
+        status: requestBody.status || "ACTIVE",
+      },
+    });
+  }
+
+  try {
+    const result = await forwardRequest({
+      path: "/superadmin/schools",
+      method: "POST",
+      body: requestBody,
+      authorizationHeader: authHeader,
+    });
+
+    return response.status(result.status).json(result.body);
+  } catch {
+    return response
+      .status(502)
+      .json({ message: "Unable to reach upstream create school service." });
   }
 });
 
@@ -226,11 +284,9 @@ app.get(
 
       return response.status(result.status).json(result.body);
     } catch {
-      return response
-        .status(502)
-        .json({
-          message: "Unable to reach upstream class-wise students service.",
-        });
+      return response.status(502).json({
+        message: "Unable to reach upstream class-wise students service.",
+      });
     }
   },
 );
@@ -310,6 +366,61 @@ app.get(
     });
   },
 );
+
+app.post("/superadmin/schools/owner", async (request, response) => {
+  const authHeader = request.headers.authorization || "";
+
+  if (!authHeader) {
+    return response
+      .status(401)
+      .json({ message: "Authorization header is required." });
+  }
+
+  const requestBody = request.body || {};
+
+  if (
+    !requestBody.schoolCode ||
+    !requestBody.name ||
+    !requestBody.email ||
+    !requestBody.phone
+  ) {
+    return response.status(400).json({
+      message: "schoolCode, name, email and phone are required.",
+    });
+  }
+
+  if (!TARGET_API_BASE_URL) {
+    return response.status(201).json({
+      owner: {
+        id: Date.now(),
+        schoolCode: requestBody.schoolCode,
+        role: "OWNER",
+        name: requestBody.name,
+        email: requestBody.email,
+        phone: requestBody.phone,
+        status: requestBody.status || "ACTIVE",
+      },
+    });
+  }
+
+  try {
+    const result = await forwardRequest({
+      path: "/superadmin/schools/owner",
+      method: "POST",
+      body: {
+        ...requestBody,
+        role: "OWNER",
+      },
+      authorizationHeader: authHeader,
+    });
+
+    return response.status(result.status).json(result.body);
+  } catch {
+    return response
+      .status(502)
+      .json({ message: "Unable to reach upstream owner service." });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Express API listening on http://localhost:${PORT}`);

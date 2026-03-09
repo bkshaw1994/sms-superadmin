@@ -1,19 +1,17 @@
 import {
+  Building2,
   ChevronLeft,
-  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
-  Settings,
-  Users,
+  UserPlus,
 } from "lucide-react";
 
-function Sidebar({ isCollapsed, onToggle, onLogout }) {
+function Sidebar({ isCollapsed, onToggle, onLogout, activeLabel, onMenuSelect }) {
   const menuItems = [
     { label: "Dashboard", icon: LayoutDashboard },
-    { label: "Students", icon: Users },
-    { label: "Reports", icon: FileText },
-    { label: "Settings", icon: Settings },
+    { label: "Add School", icon: Building2 },
+    { label: "Add Owner", icon: UserPlus },
   ];
 
   return (
@@ -46,8 +44,13 @@ function Sidebar({ isCollapsed, onToggle, onLogout }) {
             return (
               <button
                 key={item.label}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-slate-700 transition hover:bg-slate-100"
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition ${
+                  activeLabel === item.label
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-700 hover:bg-slate-100"
+                }`}
                 type="button"
+                onClick={() => onMenuSelect(item.label)}
               >
                 <Icon size={19} />
                 <span className={isCollapsed ? "hidden" : "inline"}>

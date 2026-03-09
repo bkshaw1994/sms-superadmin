@@ -40,6 +40,30 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/dashboard/add-school"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <DashboardPage
+                username={username}
+                token={token}
+                onLogout={handleLogout}
+              />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/add-owner"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <DashboardPage
+                username={username}
+                token={token}
+                onLogout={handleLogout}
+              />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/dashboard/schools/:schoolCode"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
