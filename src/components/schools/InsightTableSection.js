@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ArrowDownUp, Search } from "lucide-react";
 
 function InsightTableSection({ title, rows, columns, emptyMessage }) {
   const [query, setQuery] = useState("");
@@ -78,24 +79,30 @@ function InsightTableSection({ title, rows, columns, emptyMessage }) {
 
   return (
     <section>
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-        <span className="text-xs text-slate-500">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-2xl font-bold text-slate-950">{title}</h2>
+        <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
           Rows: {sortedRows.length}
         </span>
       </div>
 
       {rows.length > 0 ? (
-        <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-2">
-          <input
-            className="min-w-[180px] flex-1 rounded border border-slate-300 px-2 py-1 text-sm"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search in table..."
-          />
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-[24px] border border-slate-200/80 bg-white/85 p-3">
+          <label className="relative min-w-[220px] flex-1">
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              className="control-input w-full pl-10"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search in table..."
+            />
+          </label>
 
           <select
-            className="rounded border border-slate-300 px-2 py-1 text-sm"
+            className="control-select"
             value={sortKey}
             onChange={(event) => setSortKey(event.target.value)}
           >
@@ -107,7 +114,7 @@ function InsightTableSection({ title, rows, columns, emptyMessage }) {
           </select>
 
           <button
-            className="rounded border border-slate-300 px-2 py-1 text-sm"
+            className="control-button gap-2"
             type="button"
             onClick={() =>
               setSortDirection((previousDirection) =>
@@ -115,11 +122,12 @@ function InsightTableSection({ title, rows, columns, emptyMessage }) {
               )
             }
           >
+            <ArrowDownUp size={15} />
             {sortDirection === "asc" ? "Asc" : "Desc"}
           </button>
 
           <select
-            className="rounded border border-slate-300 px-2 py-1 text-sm"
+            className="control-select"
             value={pageSize}
             onChange={(event) => setPageSize(Number(event.target.value))}
           >
@@ -131,24 +139,23 @@ function InsightTableSection({ title, rows, columns, emptyMessage }) {
       ) : null}
 
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-600">{emptyMessage}</p>
+        <p className="app-panel-muted p-5 text-sm text-slate-600">
+          {emptyMessage}
+        </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-100">
+        <div className="table-shell overflow-x-auto">
+          <table className="table-base">
+            <thead>
               <tr>
                 {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    className="px-3 py-2 text-left font-semibold text-slate-700"
-                  >
+                  <th key={column.key} className="table-th">
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 rounded px-1 py-0.5 hover:bg-slate-200"
+                      className="inline-flex items-center gap-2 rounded-full px-2 py-1 transition hover:bg-white/10"
                       onClick={() => handleHeaderSort(column.key)}
                     >
                       <span>{column.label}</span>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-[0.65rem] text-slate-300">
                         {sortIndicator(column.key)}
                       </span>
                     </button>
@@ -156,17 +163,14 @@ function InsightTableSection({ title, rows, columns, emptyMessage }) {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {paginatedRows.map((row, rowIndex) => (
                 <tr
                   key={`${rowIndex}-${columns[0]?.key || "row"}`}
-                  className="hover:bg-slate-50"
+                  className="table-row"
                 >
                   {columns.map((column) => (
-                    <td
-                      key={`${rowIndex}-${column.key}`}
-                      className="px-3 py-2 text-slate-700"
-                    >
+                    <td key={`${rowIndex}-${column.key}`} className="table-td">
                       {row?.[column.key] ?? "-"}
                     </td>
                   ))}
@@ -175,13 +179,13 @@ function InsightTableSection({ title, rows, columns, emptyMessage }) {
             </tbody>
           </table>
 
-          <div className="flex items-center justify-between border-t border-slate-200 px-3 py-2 text-xs text-slate-600">
+          <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             <span>
               Page {currentPage} of {totalPages}
             </span>
             <div className="flex items-center gap-1">
               <button
-                className="rounded border border-slate-300 px-2 py-1 disabled:opacity-40"
+                className="control-button"
                 type="button"
                 disabled={currentPage <= 1}
                 onClick={() =>
@@ -191,7 +195,7 @@ function InsightTableSection({ title, rows, columns, emptyMessage }) {
                 Prev
               </button>
               <button
-                className="rounded border border-slate-300 px-2 py-1 disabled:opacity-40"
+                className="control-button"
                 type="button"
                 disabled={currentPage >= totalPages}
                 onClick={() =>

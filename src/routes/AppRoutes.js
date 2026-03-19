@@ -2,18 +2,21 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   logout,
-  selectAuthUsername,
+  selectAuthDisplayName,
   selectIsAuthenticated,
 } from "../features/auth/authSlice";
 import LoginPage from "../pages/Login/LoginPage";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
 import SchoolDetailPage from "../pages/SchoolDetails/SchoolDetailPage";
 import ProtectedRoute from "./ProtectedRoute";
+import AdminLayout from "../components/layout/AdminLayout";
+import AddSchoolForm from "../components/schools/AddSchoolForm";
+import AddOwnerForm from "../components/schools/AddOwnerForm";
 
 function AppRoutes() {
   const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
-  const username = useSelector(selectAuthUsername);
+  const displayName = useSelector(selectAuthDisplayName);
   const token = useSelector((state) => state.auth.token);
 
   const handleLogout = () => {
@@ -28,49 +31,29 @@ function AppRoutes() {
           element={<LoginPage isAuthenticated={isAuthenticated} />}
         />
         <Route
-          path="/dashboard"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <DashboardPage
-                username={username}
-                token={token}
-                onLogout={handleLogout}
-              />
+              <AdminLayout onLogout={handleLogout} />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/dashboard/add-school"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <DashboardPage
-                username={username}
-                token={token}
-                onLogout={handleLogout}
-              />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/add-owner"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <DashboardPage
-                username={username}
-                token={token}
-                onLogout={handleLogout}
-              />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/schools/:schoolCode"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <SchoolDetailPage token={token} onLogout={handleLogout} />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route
+            path="/dashboard"
+            element={<DashboardPage username={displayName} token={token} />}
+          />
+          <Route
+            path="/dashboard/add-school"
+            element={<AddSchoolForm username={displayName} token={token} />}
+          />
+          <Route
+            path="/dashboard/add-owner"
+            element={<AddOwnerForm username={displayName} token={token} />}
+          />
+          <Route
+            path="/dashboard/schools/:schoolCode"
+            element={<SchoolDetailPage token={token} />}
+          />
+        </Route>
         <Route
           path="*"
           element={

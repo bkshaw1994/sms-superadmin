@@ -4,52 +4,73 @@ import {
   schoolDisplayName,
   schoolDisplayStatus,
 } from "../../utils/schoolHelpers";
+import { ArrowUpRight } from "lucide-react";
 
 function SchoolsTable({ schools, onRowDoubleClick }) {
+  const statusClasses = (status) => {
+    const normalizedStatus = String(status || "").toUpperCase();
+    if (normalizedStatus === "ACTIVE") {
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    }
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  };
+
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-      <p className="px-3 py-2 text-xs text-slate-500">
-        Double-click any row to open school details.
-      </p>
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-100">
+    <div className="table-shell overflow-x-auto">
+      <div className="table-header-strip">
+        <span>Schools</span>
+        <span>{schools.length} Records</span>
+      </div>
+      <table className="table-base">
+        <thead>
           <tr>
-            <th className="px-3 py-2 text-left font-semibold text-slate-700">
-              School Name
-            </th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-700">
-              School Code
-            </th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-700">
-              Status
-            </th>
+            <th className="table-th">School Name</th>
+            <th className="table-th">School Code</th>
+            <th className="table-th">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody>
           {schools.map((school, index) => {
             const schoolCode = schoolCodeValue(school);
             const key = schoolCode || `${schoolDisplayName(school)}-${index}`;
             const isClickable = Boolean(schoolCode);
+            const status = schoolDisplayStatus(school);
 
             return (
               <tr
                 key={key}
-                className={`transition hover:bg-cyan-50 ${isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}
+                className={`table-row ${
+                  isClickable
+                    ? "cursor-pointer"
+                    : "cursor-not-allowed opacity-60"
+                }`}
                 onDoubleClick={() => {
                   if (schoolCode) {
                     onRowDoubleClick(String(schoolCode));
                   }
                 }}
               >
-                <td className="px-3 py-2 text-slate-800 font-medium">
-                  {schoolDisplayName(school)}
+                <td className="table-td">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-slate-900">
+                        {schoolDisplayName(school)}
+                      </p>
+                    </div>
+                    {isClickable ? (
+                      <ArrowUpRight
+                        size={16}
+                        className="shrink-0 text-slate-400"
+                      />
+                    ) : null}
+                  </div>
                 </td>
-                <td className="px-3 py-2 text-slate-700">
+                <td className="table-td font-semibold text-slate-700">
                   {schoolDisplayCode(school)}
                 </td>
-                <td className="px-3 py-2">
-                  <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
-                    {schoolDisplayStatus(school)}
+                <td className="table-td">
+                  <span className={`status-pill ${statusClasses(status)}`}>
+                    {status}
                   </span>
                 </td>
               </tr>
