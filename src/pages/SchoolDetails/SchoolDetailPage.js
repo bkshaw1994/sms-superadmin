@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { Building2, GraduationCap, ShieldCheck, Users } from "lucide-react";
 import {
   fetchSchools,
   selectSchools,
@@ -19,9 +20,8 @@ import {
 } from "../../utils/schoolHelpers";
 import InsightTableSection from "../../components/schools/InsightTableSection";
 
-function SchoolDetailPage({ token, onLogout }) {
+function SchoolDetailPage({ token }) {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { schoolCode } = useParams();
   const schools = useSelector(selectSchools);
   const schoolsStatus = useSelector(selectSchoolsStatus);
@@ -53,12 +53,17 @@ function SchoolDetailPage({ token, onLogout }) {
 
   const summaryCards = [
     {
-      label: "Class-wise Students",
+      label: "Classes",
       value: schoolInsights.classwiseStudents.length,
+      icon: GraduationCap,
     },
-    { label: "Teachers", value: schoolInsights.teachers.length },
-    { label: "Parents", value: schoolInsights.parents.length },
-    { label: "Owners/IT Admin", value: schoolInsights.ownersItadmin.length },
+    { label: "Teachers", value: schoolInsights.teachers.length, icon: Users },
+    { label: "Parents", value: schoolInsights.parents.length, icon: Users },
+    {
+      label: "Owners/IT Admin",
+      value: schoolInsights.ownersItadmin.length,
+      icon: ShieldCheck,
+    },
   ];
 
   const renderSectionRetry = (sectionKey) => (
@@ -80,162 +85,161 @@ function SchoolDetailPage({ token, onLogout }) {
   );
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-100 via-cyan-50 to-indigo-100 p-4 md:p-8">
-      <section className="mx-auto max-w-6xl rounded-xl border border-cyan-200 bg-white/90 p-6 shadow-xl shadow-cyan-100/60 md:p-8">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold text-slate-900">
-            School Dashboard
-          </h1>
-          <button
-            className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
-            type="button"
-            onClick={onLogout}
-          >
-            Logout
-          </button>
-        </div>
-
-        <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-          {selectedSchool ? (
-            <div className="space-y-2 text-sm text-slate-700">
-              <p>
-                <span className="font-semibold text-slate-900">
-                  School Code:
-                </span>{" "}
-                {decodedSchoolCode}
-              </p>
-              <p>
-                <span className="font-semibold text-slate-900">
-                  School Name:
-                </span>{" "}
-                {schoolDisplayName(selectedSchool)}
-              </p>
-              <p>
-                <span className="font-semibold text-slate-900">
-                  School Code:
-                </span>{" "}
-                {schoolDisplayCode(selectedSchool)}
-              </p>
-              <p>
-                <span className="font-semibold text-slate-900">Status:</span>{" "}
-                {schoolDisplayStatus(selectedSchool)}
-              </p>
-            </div>
-          ) : (
-            <p className="text-sm text-red-600">
-              School not found for code: {decodedSchoolCode}
+    <section className="mx-auto max-w-7xl space-y-5">
+      <div className="app-panel p-6 md:p-8">
+        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="page-kicker">School Insight View</p>
+            <h1 className="mt-3 text-3xl font-bold text-slate-950 md:text-4xl">
+              School Dashboard
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Review enrollment structure, staff, parents, and ownership data
+              for the selected school.
             </p>
-          )}
-        </div>
-
-        <div className="mt-5 grid gap-3 md:grid-cols-4">
-          {summaryCards.map((card) => (
-            <article
-              key={card.label}
-              className="rounded-lg border border-slate-200 bg-slate-50 p-3"
-            >
-              <p className="text-xs uppercase tracking-wide text-slate-500">
-                {card.label}
-              </p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {card.value}
-              </p>
-            </article>
-          ))}
-        </div>
-
-        {isInsightsLoading ? (
-          <p className="mt-5 text-sm text-slate-500">
-            Loading school dashboard data...
-          </p>
-        ) : null}
-
-        {schoolInsights.error ? (
-          <p className="mt-5 text-sm text-red-600">{schoolInsights.error}</p>
-        ) : null}
-
-        {!isInsightsLoading ? (
-          <div className="mt-5 space-y-5">
-            <InsightTableSection
-              title="Class-wise Students"
-              rows={schoolInsights.classwiseStudents}
-              columns={[
-                { key: "class_name", label: "Class" },
-                { key: "section", label: "Section" },
-                { key: "student_count", label: "Student Count" },
-              ]}
-              emptyMessage="No class-wise students found."
-            />
-            {schoolInsights.sectionErrors?.classwiseStudents ? (
-              <p className="-mt-3 text-xs text-red-600">
-                {schoolInsights.sectionErrors.classwiseStudents}
-                {renderSectionRetry("classwiseStudents")}
-              </p>
-            ) : null}
-
-            <InsightTableSection
-              title="Teachers"
-              rows={schoolInsights.teachers}
-              columns={[
-                { key: "name", label: "Name" },
-                { key: "email", label: "Email" },
-                { key: "phone", label: "Phone" },
-              ]}
-              emptyMessage="No teachers found."
-            />
-            {schoolInsights.sectionErrors?.teachers ? (
-              <p className="-mt-3 text-xs text-red-600">
-                {schoolInsights.sectionErrors.teachers}
-                {renderSectionRetry("teachers")}
-              </p>
-            ) : null}
-
-            <InsightTableSection
-              title="Parents"
-              rows={schoolInsights.parents}
-              columns={[
-                { key: "name", label: "Name" },
-                { key: "email", label: "Email" },
-                { key: "phone", label: "Phone" },
-              ]}
-              emptyMessage="No parents found."
-            />
-            {schoolInsights.sectionErrors?.parents ? (
-              <p className="-mt-3 text-xs text-red-600">
-                {schoolInsights.sectionErrors.parents}
-                {renderSectionRetry("parents")}
-              </p>
-            ) : null}
-
-            <InsightTableSection
-              title="Owner / IT Admin"
-              rows={schoolInsights.ownersItadmin}
-              columns={[
-                { key: "name", label: "Name" },
-                { key: "role", label: "Role" },
-                { key: "email", label: "Email" },
-                { key: "phone", label: "Phone" },
-              ]}
-              emptyMessage="No owner or IT admin details found."
-            />
-            {schoolInsights.sectionErrors?.ownersItadmin ? (
-              <p className="-mt-3 text-xs text-red-600">
-                {schoolInsights.sectionErrors.ownersItadmin}
-                {renderSectionRetry("ownersItadmin")}
-              </p>
-            ) : null}
           </div>
-        ) : null}
+        </div>
+      </div>
 
-        <button
-          className="mt-5 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-          type="button"
-          onClick={() => navigate("/dashboard")}
-        >
-          Back to Dashboard
-        </button>
-      </section>
-    </main>
+      <div className="app-panel p-6 md:p-8">
+        {selectedSchool ? (
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-teal-800">
+                <Building2 size={14} />
+                Active Record
+              </div>
+              <h2 className="mt-4 text-3xl font-bold text-slate-950">
+                {schoolDisplayName(selectedSchool)}
+              </h2>
+            </div>
+
+            <div className="app-panel-muted p-5">
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">
+                Detail Snapshot
+              </p>
+              <div className="mt-4 space-y-3 text-sm text-slate-700">
+                <p>
+                  <span className="font-semibold text-slate-900">
+                    School Code:
+                  </span>{" "}
+                  {schoolDisplayCode(selectedSchool)}
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-900">Status:</span>{" "}
+                  {schoolDisplayStatus(selectedSchool)}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            School not found for code: {decodedSchoolCode}
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {summaryCards.map((card) => (
+          <article key={card.label} className="metric-card">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="metric-label">{card.label}</p>
+                <p className="metric-value text-4xl">{card.value}</p>
+              </div>
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">
+                <card.icon size={20} />
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {isInsightsLoading ? (
+        <p className="app-panel-muted p-5 text-sm text-slate-600">
+          Loading school dashboard data...
+        </p>
+      ) : null}
+
+      {schoolInsights.error ? (
+        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {schoolInsights.error}
+        </p>
+      ) : null}
+
+      {!isInsightsLoading ? (
+        <div className="space-y-6">
+          <InsightTableSection
+            title="Class-wise Students"
+            rows={schoolInsights.classwiseStudents}
+            columns={[
+              { key: "class_name", label: "Class" },
+              { key: "section", label: "Section" },
+              { key: "student_count", label: "Student Count" },
+            ]}
+            emptyMessage="No class-wise students found."
+          />
+          {schoolInsights.sectionErrors?.classwiseStudents ? (
+            <p className="-mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+              {schoolInsights.sectionErrors.classwiseStudents}
+              {renderSectionRetry("classwiseStudents")}
+            </p>
+          ) : null}
+
+          <InsightTableSection
+            title="Teachers"
+            rows={schoolInsights.teachers}
+            columns={[
+              { key: "name", label: "Name" },
+              { key: "email", label: "Email" },
+              { key: "phone", label: "Phone" },
+            ]}
+            emptyMessage="No teachers found."
+          />
+          {schoolInsights.sectionErrors?.teachers ? (
+            <p className="-mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+              {schoolInsights.sectionErrors.teachers}
+              {renderSectionRetry("teachers")}
+            </p>
+          ) : null}
+
+          <InsightTableSection
+            title="Parents"
+            rows={schoolInsights.parents}
+            columns={[
+              { key: "name", label: "Name" },
+              { key: "email", label: "Email" },
+              { key: "phone", label: "Phone" },
+            ]}
+            emptyMessage="No parents found."
+          />
+          {schoolInsights.sectionErrors?.parents ? (
+            <p className="-mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+              {schoolInsights.sectionErrors.parents}
+              {renderSectionRetry("parents")}
+            </p>
+          ) : null}
+
+          <InsightTableSection
+            title="Owner / IT Admin"
+            rows={schoolInsights.ownersItadmin}
+            columns={[
+              { key: "name", label: "Name" },
+              { key: "role", label: "Role" },
+              { key: "email", label: "Email" },
+              { key: "phone", label: "Phone" },
+            ]}
+            emptyMessage="No owner or IT admin details found."
+          />
+          {schoolInsights.sectionErrors?.ownersItadmin ? (
+            <p className="-mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+              {schoolInsights.sectionErrors.ownersItadmin}
+              {renderSectionRetry("ownersItadmin")}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+    </section>
   );
 }
 

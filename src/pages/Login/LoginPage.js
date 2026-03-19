@@ -35,59 +35,66 @@ function LoginPage({ isAuthenticated }) {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100 p-4 grid place-items-center">
-      <section className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-300/30">
-        <h1 className="text-2xl font-bold text-slate-900">Login</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Sign in to access your dashboard.
-        </p>
+    <main className="app-canvas grid place-items-center">
+      <section className="grid w-full max-w-5xl overflow-hidden rounded-[32px] border border-white/70 bg-white/75 shadow-[0_32px_90px_-42px_rgba(15,23,42,0.45)] backdrop-blur-xl lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="relative overflow-hidden bg-slate-950 px-6 py-8 text-white md:px-8 md:py-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(45,212,191,0.32),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(245,158,11,0.24),_transparent_35%)]" />
+          <div className="relative flex h-full flex-col">
+            <h1 className="text-4xl font-bold md:text-5xl">SMS Superadmin</h1>
+            <p className="mt-4 max-w-lg text-sm leading-7 text-slate-300 md:text-base">
+              Access the school management system
+            </p>
+          </div>
+        </div>
 
-        <form className="mt-5 grid gap-3" onSubmit={handleSubmit}>
-          <label
-            className="text-sm font-semibold text-slate-700"
-            htmlFor="username"
-          >
-            Username or Email
-          </label>
-          <input
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-            id="username"
-            type="text"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            placeholder="Enter username or email"
-          />
+        <div className="px-6 py-8 md:px-8 md:py-10">
+          <h2 className="mt-3 text-3xl font-bold text-slate-950">Sign in</h2>
 
-          <label
-            className="text-sm font-semibold text-slate-700"
-            htmlFor="password"
-          >
-            Password
-          </label>
-          <input
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter password"
-          />
+          <form className="mt-8 grid gap-4" onSubmit={handleSubmit}>
+            <label className="field-label" htmlFor="username">
+              Username or Email
+              <input
+                className="field-input"
+                id="username"
+                type="text"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Enter username or email"
+              />
+            </label>
 
-          {formError ? (
-            <p className="text-sm text-red-600">{formError}</p>
-          ) : null}
-          {loginError ? (
-            <p className="text-sm text-red-600">{loginError}</p>
-          ) : null}
+            <label className="field-label" htmlFor="password">
+              Password
+              <input
+                className="field-input"
+                id="password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter password"
+              />
+            </label>
 
-          <button
-            className="mt-1 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-            type="submit"
-            disabled={isLoading}
-          >
-            {isLoading ? "Signing in..." : "Login"}
-          </button>
-        </form>
+            {formError ? (
+              <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {formError}
+              </p>
+            ) : null}
+            {loginError ? (
+              <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {loginError}
+              </p>
+            ) : null}
+
+            <button
+              className="primary-button mt-2 w-full gap-2"
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+        </div>
       </section>
     </main>
   );

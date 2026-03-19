@@ -3,39 +3,105 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
 const AUTH_STORAGE_KEY = "superadmin_auth";
+const EMPTY_AUTH = {
+  token: "",
+  username: "",
+  displayName: "",
+  email: "",
+  userId: "",
+  role: "",
+  phone: "",
+  valid: false,
+};
+const EMPTY_AUTH_STATE = {
+  ...EMPTY_AUTH,
+  status: "idle",
+  error: "",
+};
+
+function normalizeText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function firstNonEmpty(values, fallback = "") {
+  for (const value of values) {
+    const normalized = normalizeText(value);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return normalizeText(fallback);
+}
+
+function normalizeAuthData(data = {}, fallbackUsername = "") {
+  return {
+    token: firstNonEmpty([data?.token, data?.accessToken, data?.data?.token]),
+    username: firstNonEmpty([data?.username, data?.email], fallbackUsername),
+    displayName: firstNonEmpty([data?.displayName, data?.name]),
+    email: firstNonEmpty([data?.email]),
+    userId: firstNonEmpty([data?.userId]),
+    role: firstNonEmpty([data?.role]),
+    phone: firstNonEmpty([data?.phone]),
+    valid: Boolean(data?.valid),
+  };
+}
 
 function getStoredAuth() {
   if (typeof window === "undefined") {
-    return { token: "", username: "" };
+    return EMPTY_AUTH;
   }
 
   const rawValue = window.localStorage.getItem(AUTH_STORAGE_KEY);
 
   if (!rawValue) {
-    return { token: "", username: "" };
+    return EMPTY_AUTH;
   }
 
   try {
     const parsed = JSON.parse(rawValue);
 
-    return {
-      token: parsed?.token || "",
-      username: parsed?.username || "",
-    };
+    return normalizeAuthData(parsed);
   } catch {
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
-    return { token: "", username: "" };
+    return EMPTY_AUTH;
   }
 }
 
-function setStoredAuth({ token, username }) {
+function setStoredAuth({
+  token,
+  username,
+  displayName,
+  email,
+  userId,
+  role,
+  phone,
+  valid,
+}) {
   if (typeof window === "undefined") {
     return;
   }
 
+  const resolvedDisplayName = normalizeText(displayName);
+  const resolvedUsername = normalizeText(username);
+  const resolvedToken = normalizeText(token);
+  const resolvedEmail = normalizeText(email);
+  const resolvedUserId = normalizeText(userId);
+  const resolvedRole = normalizeText(role);
+  const resolvedPhone = normalizeText(phone);
+
   window.localStorage.setItem(
     AUTH_STORAGE_KEY,
-    JSON.stringify({ token, username }),
+    JSON.stringify({
+      token: resolvedToken,
+      username: resolvedUsername,
+      displayName: resolvedDisplayName,
+      email: resolvedEmail,
+      userId: resolvedUserId,
+      role: resolvedRole,
+      phone: resolvedPhone,
+      valid: Boolean(valid),
+    }),
   );
 }
 
@@ -55,23 +121,8 @@ function buildApiUrl(path) {
   return `${API_BASE_URL.replace(/\/$/, "")}${path}`;
 }
 
-function parseToken(responseBody) {
-  return (
-    responseBody?.token ||
-    responseBody?.accessToken ||
-    responseBody?.data?.token ||
-    ""
-  );
-}
-
-function parseLoginName(responseBody, fallbackUsername) {
-  return (
-    responseBody?.user?.name ||
-    responseBody?.user?.username ||
-    responseBody?.data?.user?.name ||
-    responseBody?.data?.user?.username ||
-    fallbackUsername
-  );
+function parseAuthPayload(responseBody, fallbackUsername) {
+  return normalizeAuthData(responseBody, fallbackUsername);
 }
 
 export const loginSuperadmin = createAsyncThunk(
@@ -97,16 +148,19 @@ export const loginSuperadmin = createAsyncThunk(
         return rejectWithValue(responseBody?.message || "Login failed.");
       }
 
-      const token = parseToken(responseBody);
+      const authPayload = parseAuthPayload(responseBody, username);
+
+      if (responseBody?.valid === false) {
+        return rejectWithValue(responseBody?.message || "Invalid credentials.");
+      }
+
+      const token = authPayload.token;
 
       if (!token) {
         return rejectWithValue("Login response did not include an auth token.");
       }
 
-      return {
-        token,
-        username: parseLoginName(responseBody, username),
-      };
+      return authPayload;
     } catch {
       return rejectWithValue("Unable to connect to login API.");
     }
@@ -116,10 +170,8 @@ export const loginSuperadmin = createAsyncThunk(
 const persistedAuth = getStoredAuth();
 
 const initialState = {
-  username: persistedAuth.username,
-  token: persistedAuth.token,
-  status: "idle",
-  error: "",
+  ...EMPTY_AUTH_STATE,
+  ...persistedAuth,
 };
 
 const authSlice = createSlice({
@@ -128,11 +180,7 @@ const authSlice = createSlice({
   reducers: {
     logout: () => {
       clearStoredAuth();
-      return {
-        ...initialState,
-        username: "",
-        token: "",
-      };
+      return { ...EMPTY_AUTH_STATE };
     },
   },
   extraReducers: (builder) => {
@@ -142,14 +190,12 @@ const authSlice = createSlice({
         state.error = "";
       })
       .addCase(loginSuperadmin.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.token = action.payload.token;
-        state.username = action.payload.username;
-        state.error = "";
-        setStoredAuth({
-          token: action.payload.token,
-          username: action.payload.username,
+        const normalizedPayload = normalizeAuthData(action.payload);
+        Object.assign(state, normalizedPayload, {
+          status: "succeeded",
+          error: "",
         });
+        setStoredAuth(normalizedPayload);
       })
       .addCase(loginSuperadmin.rejected, (state, action) => {
         state.status = "failed";
@@ -162,6 +208,12 @@ export const { logout } = authSlice.actions;
 
 export const selectIsAuthenticated = (state) => Boolean(state.auth.token);
 export const selectAuthUsername = (state) => state.auth.username;
+export const selectAuthDisplayName = (state) => state.auth.displayName;
+export const selectAuthEmail = (state) => state.auth.email;
+export const selectAuthUserId = (state) => state.auth.userId;
+export const selectAuthRole = (state) => state.auth.role;
+export const selectAuthPhone = (state) => state.auth.phone;
+export const selectAuthValid = (state) => state.auth.valid;
 export const selectAuthToken = (state) => state.auth.token;
 export const selectAuthStatus = (state) => state.auth.status;
 export const selectAuthError = (state) => state.auth.error;
