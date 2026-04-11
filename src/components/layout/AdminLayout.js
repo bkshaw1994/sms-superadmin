@@ -8,6 +8,10 @@ function AdminLayout({ onLogout }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const activeLabel = (() => {
+    if (location.pathname === "/dashboard/profile") {
+      return "Profile";
+    }
+
     if (location.pathname === "/dashboard/add-school") {
       return "Add School";
     }
@@ -27,6 +31,11 @@ function AdminLayout({ onLogout }) {
 
     if (menuLabel === "Add Owner") {
       navigate("/dashboard/add-owner");
+      return;
+    }
+
+    if (menuLabel === "Profile") {
+      navigate("/dashboard/profile");
       return;
     }
 

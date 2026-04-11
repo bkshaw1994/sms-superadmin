@@ -7,6 +7,7 @@ import {
   Menu,
   ShieldCheck,
   Sparkles,
+  User,
   UserPlus,
 } from "lucide-react";
 import { selectAuthDisplayName } from "../../features/auth/authSlice";
@@ -24,6 +25,7 @@ function Sidebar({
     { label: "Dashboard", icon: LayoutDashboard },
     { label: "Add School", icon: Building2 },
     { label: "Add Owner", icon: UserPlus },
+    { label: "Profile", icon: User },
   ];
 
   return (

@@ -8,6 +8,7 @@ import {
 import LoginPage from "../pages/Login/LoginPage";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
 import SchoolDetailPage from "../pages/SchoolDetails/SchoolDetailPage";
+import ProfilePage from "../pages/Profile/ProfilePage";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminLayout from "../components/layout/AdminLayout";
 import AddSchoolForm from "../components/schools/AddSchoolForm";
@@ -53,6 +54,7 @@ function AppRoutes() {
             path="/dashboard/schools/:schoolCode"
             element={<SchoolDetailPage token={token} />}
           />
+          <Route path="/dashboard/profile" element={<ProfilePage />} />
         </Route>
         <Route
           path="*"

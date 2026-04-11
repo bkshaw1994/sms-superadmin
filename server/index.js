@@ -249,6 +249,136 @@ async function forwardGetWithFallback({ endpoints, authorizationHeader }) {
   );
 }
 
+async function forwardPostWithFallback({
+  endpoints,
+  body,
+  authorizationHeader,
+}) {
+  let lastResult = null;
+
+  for (const endpoint of endpoints) {
+    const result = await forwardRequest({
+      path: endpoint,
+      method: "POST",
+      body,
+      authorizationHeader,
+    });
+
+    if (result.status >= 200 && result.status < 300) {
+      return result;
+    }
+
+    lastResult = result;
+  }
+
+  return (
+    lastResult || { status: 502, body: { message: "Upstream request failed." } }
+  );
+}
+
+app.post("/auth/forgot-password", async (request, response) => {
+  const requestBody = request.body || {};
+  const email = requestBody.email || "";
+
+  if (!email) {
+    return response.status(400).json({ message: "Email is required." });
+  }
+
+  if (!TARGET_API_BASE_URL) {
+    return response.json({ message: "Check mail for OTP." });
+  }
+
+  try {
+    const result = await forwardPostWithFallback({
+      endpoints: [
+        "/auth/forgot-password",
+        "/auth/forgotpassword",
+        "/auth/superadmin/forgot-password",
+      ],
+      body: { email },
+    });
+
+    return response.status(result.status).json(result.body);
+  } catch {
+    return response
+      .status(502)
+      .json({ message: "Unable to reach upstream forgot password service." });
+  }
+});
+
+app.post("/auth/forgot-password/verify", async (request, response) => {
+  const requestBody = request.body || {};
+  const email = requestBody.email || "";
+  const otp = requestBody.otp || "";
+  const newPassword = requestBody.newPassword || "";
+
+  if (!email || !otp || !newPassword) {
+    return response
+      .status(400)
+      .json({ message: "Email, OTP and new password are required." });
+  }
+
+  if (!TARGET_API_BASE_URL) {
+    return response.json({
+      message: "OTP verified and password reset successful.",
+    });
+  }
+
+  try {
+    const result = await forwardPostWithFallback({
+      endpoints: ["/auth/forgot-password/verify"],
+      body: { email, otp, newPassword },
+    });
+
+    return response.status(result.status).json(result.body);
+  } catch {
+    return response
+      .status(502)
+      .json({ message: "Unable to reach upstream OTP verification service." });
+  }
+});
+
+app.post("/auth/change-password", async (request, response) => {
+  const authHeader = request.headers.authorization || "";
+
+  if (!authHeader) {
+    return response
+      .status(401)
+      .json({ message: "Authorization header is required." });
+  }
+
+  const requestBody = request.body || {};
+  const currentPassword = requestBody.currentPassword || "";
+  const newPassword = requestBody.newPassword || "";
+
+  if (!currentPassword || !newPassword) {
+    return response
+      .status(400)
+      .json({ message: "Current password and new password are required." });
+  }
+
+  if (!TARGET_API_BASE_URL) {
+    return response.json({ message: "Password reset successful." });
+  }
+
+  try {
+    const result = await forwardPostWithFallback({
+      endpoints: ["/auth/change-password"],
+      authorizationHeader: authHeader,
+      body: {
+        currentPassword,
+        newPassword,
+      },
+    });
+
+    return response.status(result.status).json(result.body);
+  } catch {
+    return response
+      .status(502)
+      .json({ message: "Unable to reach upstream reset password service." });
+  }
+});
+
 app.get(
   "/superadmin/schools/:schoolCode/students/classwise",
   async (request, response) => {
